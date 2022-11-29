@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  checkmk-cmk:
+    container_name: checkmk-cmk
+    image: checkmk-cmk:2.1.0p16 #TODO: set this up via an installer
+    pull_policy: never
+    restart: unless-stopped
+    tmpfs:
+      - /opt/omd/sites/cmk/tmp:uid=1000,gid=1000
+    volumes:
+      - /tmp/checkmk/data:/omd/sites #TODO: set this up via an installer
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5000:5000
+    networks:
+      checkmk_network:
+
+networks:
+  checkmk_network:
