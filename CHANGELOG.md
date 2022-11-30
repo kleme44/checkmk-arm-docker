@@ -1,4 +1,4 @@
-# Changelog - v1.1.1 (2022-11-30)
+# Changelog - v1.1.2 (2022-11-30)
 
 ## General
 
@@ -9,3 +9,4 @@
 ### fix
 
 - fixes typo in the Dockerfile copy command (Wed, 30 Nov 2022 01:12:09 +0100)
+- prevents setup script to overwrite already existing user passwords (Wed, 30 Nov 2022 22:04:57 +0100)
