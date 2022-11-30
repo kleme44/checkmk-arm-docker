@@ -20,8 +20,8 @@ ENV CMK_CONTAINERIZED="TRUE"
 RUN apt-get update && apt-get upgrade -y
 
 # Copy the ARM64 compatible Check-mk binary file to the container
-# TODO: based on helper.py -> COPY check-mk-raw-<version>•<architecture>.deb /tmp/
-COPY check-mk-raw-2.1.0p16•arm64.deb /tmp/
+# TODO: based on helper.py -> COPY check-mk-raw-<version>*<architecture>.deb /tmp/
+COPY check-mk-raw-2.1.0p16*arm64.deb /tmp/
 
 # Install checkmk and its dependencies
 RUN dpkg -i /tmp/check-mk-raw-*.deb ; apt-get install -f -y
