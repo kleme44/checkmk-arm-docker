@@ -1,27 +1,30 @@
 # This file was created based on https://raw.githubusercontent.com/tribe29/checkmk/master/docker_image/Dockerfile
 
+# Building the base image
 FROM debian:bullseye-slim
 
-# Setting the checkmk variables
-# TODO: set up CMK_VERSION ARG and CMK_SITE_ID ENV based on user input via the helper.py
+# Set up build-time variables for checkmk (these default values will be overwritten by the helper script; be careful, as these values will be visible in the docker history! )
 ARG CMK_VERSION="2.1.0p16"
 ARG CMK_EDITION="raw"
-ARG CMK_SITE_ID
-ENV CMK_SITE_ID="cmk"
-ARG CMK_LIVESTATUS_TCP
-ENV CMK_LIVESTATUS_TCP=""
-ARG CMK_PASSWORD
-ENV CMK_PASSWORD="adminadmin"
-ARG MAIL_RELAY_HOST
-ENV MAIL_RELAY_HOST=""
+ARG CMK_SITE_ID="cmk"
+ARG CMK_PASSWORD="adminadmin"
+ARG PACKAGE_NAME="check-mk-raw-2.1.0p16*arm64.deb"
+ARG CMK_LIVESTATUS_TCP=""
+ARG MAIL_RELAY_HOST=""
+
+# Set up run-time variables for checkmk (these are NOT visible in the docker history)
+ENV CMK_SITE_ID ${CMK_SITE_ID}
+ENV CMK_PASSWORD ${CMK_PASSWORD}
+ENV PACKAGE_NAME ${PACKAGE_NAME}
+ENV CMK_LIVESTATUS_TCP ${CMK_LIVESTATUS_TCP}
+ENV MAIL_RELAY_HOST ${MAIL_RELAY_HOST}
 ENV CMK_CONTAINERIZED="TRUE"
 
 # Updating Debian
 RUN apt-get update && apt-get upgrade -y
 
 # Copy the ARM64 compatible Check-mk binary file to the container
-# TODO: based on helper.py -> COPY check-mk-raw-<version>*<architecture>.deb /tmp/
-COPY check-mk-raw-2.1.0p16*arm64.deb /tmp/
+COPY ${PACKAGE_NAME} /tmp/
 
 # Install checkmk and its dependencies
 RUN dpkg -i /tmp/check-mk-raw-*.deb ; apt-get install -f -y
