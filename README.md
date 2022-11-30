@@ -4,6 +4,8 @@
 
 This solution were successfully tested on both Raspberry Pi 4 and Apple Silicon MAC.
 
+The project is not yet able to run multiple containers simultainiously (this feature will be added with the next version), but it can build multiple images and run the selected one.
+
 > **Note**
 >
 > It is highly recommended to use the  **setup script** for the setup process as it:

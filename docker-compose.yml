@@ -1,8 +1,12 @@
+# Developed by Antal Klemencsics, 2022 December
+# The variables' values are imported from the .env file
+
 version: '3.8'
+name: 'checkmk-arm-stack'
 
 services:
-  checkmk-cmk:
-    container_name: checkmk-cmk
+  site1:
+    container_name: ${CONTAINER_NAME}
     image: ${IMAGE_NAME}
     pull_policy: never
     restart: unless-stopped
