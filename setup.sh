@@ -4,14 +4,9 @@
 # --- VARIABLES ---
 availableVersions=( $(curl --silent https://api.github.com/repos/chrisss404/check-mk-arm/tags | grep 'name' | awk -F'": "' '{print $2}' | awk -F'"' '{print $1}') )
 availableVersionsCount=${#availableVersions[@]}
-desiredVersion=""
-
 availableSystemArchitectures=("arm64" "armhf")
 availableSystemArchitecturesCount=${#availableSystemArchitectures[@]}
-desiredSystemArchitecture=""
-
-desiredSiteName=""
-desiredPassword=""
+systemArchitecture="$(uname -m)"
 
 
 # --- MAIN ---
@@ -40,12 +35,10 @@ fi
 echo -e '\n\nSYSTEM ARCHITECTURE SETUP'
 printf '%.s─' $(seq 1 $(tput cols))
 
-unameValue="$(uname -m)"
-
-if [[ $unameValue == 'aarch64' ]] || [[ $unameValue == 'arm64' ]] ; then
+if [[ $systemArchitecture == 'aarch64' ]] || [[ $systemArchitecture == 'arm64' ]] ; then
     echo -e "\nAuto-detected the system architecture:\narm64"
     desiredSystemArchitecture="arm64"
-elif [[ $unameValue == 'armv7l' ]] || [[ $unameValue == 'armhf' ]]; then
+elif [[ $systemArchitecture == 'armv7l' ]] || [[ $systemArchitecture == 'armhf' ]]; then
     echo -e "\nAuto-detected the system architecture:\narm64"
     desiredSystemArchitecture="armhf"
 else
@@ -68,7 +61,12 @@ fi
 echo -e '\n\nCHECKMK SITE SETUP'
 printf '%.s─' $(seq 1 $(tput cols))
 
-echo -e "\nType in the desired checkmk site NAME:" ; read desiredSiteName
+echo -e "\nDefine a custom checkmk site name, or press ENTER (default is 'cmk'):" ; read response
+if [[ $response = "" ]]; then 
+    desiredSiteName='cmk'
+else
+    desiredSiteName=$response
+fi
 
 # 4. Setup orchestrating
 

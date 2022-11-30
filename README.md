@@ -11,17 +11,15 @@ This solution were successfully tested on both Raspberry Pi 4 and Apple Silicon 
 > - offers the entire release library of arm checkmk packages to be automatically downloaded (so you can precisely choose the desired version)
 > - can automatically detect the system architecture
 > - can automatically build the docker image
-> - enables you to set up a custom site name
-> - enables you to set up a custom data source path
-> - enables you to set up a custom host port number
-> - enables you to easily change the default password of the 'cmkadmin' user
-> - prints the essential information (URL, username, pw) for the cmk site once the setup is done
+> - enables you to set up a custom site name, data source path, host port number
+> - enables you to easily change the default password of the 'cmkadmin' user during the installation
+> - prints the essential information (URL, username, pw) for the created cmk site once the setup is done
 
 ## Automatic setup
 
 1. Clone this repository, then change the working directory to the downloaded local git repo
-2. Make sure you have *curl* installed
-3. Run `setup.sh` and follow the on-screen instructions.
+2. Make sure you have **curl** installed
+3. Run `./setup.sh` from your terminal and follow the on-screen instructions.
 
 ## Manual setup
 
