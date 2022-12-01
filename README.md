@@ -50,9 +50,12 @@ Please note that in the manual setup guide **only the checkmk version 2.1.0p16 o
 
 ## Container management
 
+The easiest way is to handle the containers with the Docker Desktop app. If you have a headless setup, follow the steps below.
+
 - To **start** the container, simply change directory to the git folder where you've cloned the project, then run `docker compose up -d` .
   - Please note that during the automatic installation, the container will automatically be started in the background !
 - To **stop** the running container, simply change directory to the git folder where you've cloned the project, then run `docker compose down` .
+- To **stop && remove** the running container, simply run `docker rm -f <containerID>` (you can look up the containerID with `docker ps`).
 
 ## References
 
