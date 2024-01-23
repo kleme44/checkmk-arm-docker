@@ -1,20 +1,24 @@
 #!/bin/bash
 # Developed by Antal Klemencsics, 2022 December
 
+
 # --- VARIABLES ---
+
+
 desiredSiteName="cmk"
 desiredDataSourcePath="/tmp/checkmk/data"
 desiredHostPort=5000
 
 
 # --- MAIN ---
+
+
 tput reset
 
 
 # 1. Information gathering
 echo -e '\n\nINFORMATION GATHERING'
 printf '%.s─' $(seq 1 $(tput cols))
-
 
 # 1.1 System architecture
 echo -e "\n1. System architecture ...\n"
@@ -27,7 +31,7 @@ if [[ $systemArchitecture == 'aarch64' ]] || [[ $systemArchitecture == 'arm64' ]
     echo -e "- Auto-detected the system architecture:\narm64"
     desiredSystemArchitecture="arm64"
 elif [[ $systemArchitecture == 'armv7l' ]] || [[ $systemArchitecture == 'armhf' ]]; then
-    echo -e "- Auto-detected the system architecture:\narm64"
+    echo -e "- Auto-detected the system architecture:\narmhf"
     desiredSystemArchitecture="armhf"
 else
     echo -e "- Could not auto-detect the system architecture. You can choose from the following options:\n"
@@ -35,7 +39,7 @@ else
         echo -e "$i. \t ${availableSystemArchitectures[$i]}"
     done
 
-    echo -e "- Please tpye in the desired system architecture's sequence number (0..$(($availableSystemArchitecturesCount - 1))):" ; read seqNumber
+    echo -e "\n- Please tpye in the desired system architecture's sequence number (0..$(($availableSystemArchitecturesCount - 1))):" ; read seqNumber
     if [[ $seqNumber == [[:digit:]]* ]] && (($seqNumber >= 0)) && (($seqNumber < $availableSystemArchitecturesCount)); then
         desiredSystemArchitecture=${availableSystemArchitectures[$seqNumber]}
     else
@@ -43,11 +47,33 @@ else
     fi
 fi
 
+# 1.2 Debian version
+echo -e "\n2. Debian Version ...\n"
+
+debianVersion="$(lsb_release -c | awk -F: '{print $2}' | sed -e 's/^[ \t]*//')"
+availableDebianVersions=("bullseye" "bookworm")
+availableDebianVersionsCount=${#availableDebianVersions[@]}
+
+if [[ $debianVersion == 'bullseye' ]] || [[ $debianVersion == 'bookworm' ]] ; then
+    echo -e "- Auto-detected the system architecture:\n$debianVersion"
+else
+    echo -e "- Could not auto-detect the debian version. You can choose from the following options:\n"
+    for i in ${!availableDebianVersions[@]}; do
+        echo -e "$i. \t ${availableDebianVersions[$i]}"
+    done
+
+    echo -e "- Please tpye in the desired debian version's sequence number (0..$(($availableDebianVersionsCount - 1))):" ; read seqNumber
+    if [[ $seqNumber == [[:digit:]]* ]] && (($seqNumber >= 0)) && (($seqNumber < $availableDebianVersionsCount)); then
+        debianVersion=${availableDebianVersions[$seqNumber]}
+    else
+        echo -e "\n\nFATAL: Unavailable system architecture sequence number!" && exit 1
+    fi
+fi
 
 # 1.2 CMK version
-echo -e "\n2. Checkmk version ...\n"
+echo -e "\n3. Checkmk version ...\n"
 
-package_download_urls=( $(curl --silent https://api.github.com/repos/chrisss404/check-mk-arm/releases | grep 'browser_download_url' | awk -F'": "' '{print $2}' | awk -F'"' '{print $1}' | grep "bullseye_$desiredSystemArchitecture") )
+package_download_urls=( $(curl --silent https://api.github.com/repos/chrisss404/check-mk-arm/releases | grep 'browser_download_url' | awk -F'": "' '{print $2}' | awk -F'"' '{print $1}' | grep "${debianVersion}_$desiredSystemArchitecture") )
 availablePackageCount=${#package_download_urls[@]}
 
 if (( $availablePackageCount > 0 )); then
@@ -69,11 +95,11 @@ else
     echo -e "\n\nFATAL: Unavailable version sequence number!" && exit 1
 fi
 
-packageName="check-mk-raw-${desiredVersion}_0.bullseye_${desiredSystemArchitecture}.deb"
+packageName="check-mk-raw-${desiredVersion}_0.${debianVersion}_${desiredSystemArchitecture}.deb"
 
 
 # 1.3 Checkmk site name
-echo -e "\n3. Checkmk site name ...\n"
+echo -e "\n4. Checkmk site name ...\n"
 echo -e "-Define a custom checkmk site name, or press ENTER for the default setting ('$desiredSiteName'):" ; read response
 if [[ ! $response == "" ]]; then desiredSiteName=$response; fi
 
@@ -81,7 +107,7 @@ imageTag="checkmk-$desiredSiteName:$desiredVersion"
 
 
 # 1.4 Checkmk data source path
-echo -e "\n4. Checkmk data source path ...\n"
+echo -e "\n5. Checkmk data source path ...\n"
 echo "- Define a custom data source path, or press ENTER for the default setting ('$desiredDataSourcePath'):" ; read response
 if [[ $response == "" ]]; then 
     mkdir -p $desiredDataSourcePath || ( echo -e "\n\nFATAL: Failed to create/access the default data source path !" && exit 1 )
@@ -92,7 +118,7 @@ fi
 
 
 # 1.5 Checkmk host port
-echo -e "\n5. Checkmk host port ...\n"
+echo -e "\n6. Checkmk host port ...\n"
 echo "- Define a custom host port, or press ENTER for the default setting ($desiredHostPort):" ; read response
 if [[ ! $response == "" ]]; then desiredHostPort=$response; fi
 if [[ ! $desiredHostPort == [[:digit:]]* ]]; then echo -e "\n\nFATAL: The port number '$desiredHostPort' is incorrect." && exit 1; fi
@@ -100,7 +126,7 @@ if [[ ! $desiredHostPort == [[:digit:]]* ]]; then echo -e "\n\nFATAL: The port n
 
 
 # 1.6 Cmkadmin user password
-echo -e "\n6. Cmkadmin user password ...\n"
+echo -e "\n7. Cmkadmin user password ...\n"
 echo -e "-Type in the desired password for the 'cmkadmin' user on the '$desiredSiteName' site:" ; read desiredPassword
 
 
@@ -127,11 +153,12 @@ echo -e "\n2. Building the docker image ..."
 if [ $(docker images -q $imageTag) ]; then
     echo "- The image is already built." #TODO: add rebuild option y/n
 else
-    docker build -t $imageTag --build-arg CMK_VERSION=${desiredVersion} --build-arg CMK_SITE_ID=${desiredSiteName} --build-arg PACKAGE_NAME=${packageName} . || ( echo -e "\n\nFATAL: Failed to build the docker image." && exit 1 )
+    IMAGE_CMK_BASE="debian:${debianVersion}-slim"
+    docker build -t $imageTag --build-arg IMAGE_CMK_BASE=${IMAGE_CMK_BASE} --build-arg CMK_VERSION=${desiredVersion} --build-arg CMK_SITE_ID=${desiredSiteName} --build-arg PACKAGE_NAME=${packageName} . || ( echo -e "\n\nFATAL: Failed to build the docker image." && exit 1 )
 fi
 
 
-# 2.3 Updating the docker-compose.yml
+# 2.3 Customising the docker-compose.yml
 echo -e "\n3. Updating the docker-compose.yml via the .env file..."
 echo -e "CONTAINER_NAME = 'checkmk-$desiredSiteName'\nIMAGE_NAME = '$imageTag'\nDATA_SOURCE_PATH = '$desiredDataSourcePath'\nHOST_PORT = $desiredHostPort" > .env
 
@@ -151,8 +178,14 @@ done
 
 
 # 2.5 Changing the default password of the cmkadmin user
-echo -e "\n5. Changing the default password for 'cmkadmin' user ..."
-docker exec -t "$containerID" /bin/bash -c "htpasswd -b /omd/sites/$desiredSiteName/etc/htpasswd cmkadmin $desiredPassword"
+echo -e "\n5. Changing the default password for 'cmkadmin' user ...\n"
+
+# docker exec -t $containerID "htpasswd -b /omd/sites/$desiredSiteName/etc/htpasswd cmkadmin $desiredPassword"
+
+echo -e "- ACTION REQUIRED: We'll open an interactive shell to the docker image below,\n please copy and paste the following code into it then hit enter:\n\n"
+echo -e "echo $desiredPassword | cmk-passwd -i cmkadmin;exit\n"
+
+docker exec -it $containerID su cmk
 
 
 # 3. FINISHED
@@ -173,7 +206,9 @@ echo -e "USER:\tcmkadmin"
 echo -e "PW:\t$desiredPassword"
 
 # ----
-# TODO: ask if we want to set up multiple sites (= multiple containers on the same network where every container is one site)
+# TODO: 
+# the old solution of password setting is not working anymore due to Werk #14389 - should come up with a more sophisticated soltion
+# ask if we want to set up multiple sites (= multiple containers on the same network where every container is one site)
 # assembling the docker-compose.yml
 # gather every local checkmk image then add the as new services (one service per site - if there's more than one version for the same site, ask user to delete the older ones, then continue with the last modified for the site)
 # ask for data bind mount filepath, default should be /etc/checkmk/data (create if not existent) -- then fill this in the compose file

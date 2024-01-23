@@ -17,6 +17,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - ${HOST_PORT}:5000
+      - 6557:6557
     networks:
       common_network:
 

@@ -1,9 +1,11 @@
 # This file was created based on https://raw.githubusercontent.com/tribe29/checkmk/master/docker_image/Dockerfile
 
-# Building the base image
-FROM debian:bullseye-slim
+# Building the base image (parameterised by --build-arg from the helper script based on the correct debian version)
+ARG IMAGE_CMK_BASE
+FROM ${IMAGE_CMK_BASE}
 
-# Set up build-time variables for checkmk (these default values will be overwritten by the helper script; be careful, as these values will be visible in the docker history! )
+# Set up build-time variables for checkmk (these default values will be overwritten by the helper script witg --build-args
+# be careful, as these values will be visible in the docker history!
 ARG CMK_VERSION="2.1.0p16"
 ARG CMK_EDITION="raw"
 ARG CMK_SITE_ID="cmk"
@@ -23,20 +25,23 @@ ENV CMK_CONTAINERIZED="TRUE"
 # Updating Debian
 RUN apt-get update && apt-get upgrade -y
 
-# Copy the ARM64 compatible Check-mk binary file to the container
+# Copy the ARM64 compatible CheckMK package file to the container
 COPY ${PACKAGE_NAME} /tmp/
 
-# Install checkmk and its dependencies
+# Install the copied checkmk package and its dependencies
 RUN dpkg -i /tmp/check-mk-raw-*.deb ; apt-get install -f -y
 
 # Cleanup the unnecessary files
 RUN apt-get clean && rm -rf /tmp/*
 
 # Open the neccessary ports
+# 5000 - Serves the Checkmk GUI
+# 6557 - Serves Livestatus (if enabled via "omd config")
 EXPOSE 5000 6557
 
 # Check if the installation was successful
-HEALTHCHECK --interval=1m --timeout=5s CMD omd status || exit 1
+HEALTHCHECK --interval=1m --timeout=5s \
+    CMD omd status || exit 1
 
 # Copy and setup of the entrypoint script
 COPY docker-entrypoint.sh /
