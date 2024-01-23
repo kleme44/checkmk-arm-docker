@@ -39,7 +39,7 @@ else
         echo -e "$i. \t ${availableSystemArchitectures[$i]}"
     done
 
-    echo -e "- Please tpye in the desired system architecture's sequence number (0..$(($availableSystemArchitecturesCount - 1))):" ; read seqNumber
+    echo -e "\n- Please tpye in the desired system architecture's sequence number (0..$(($availableSystemArchitecturesCount - 1))):" ; read seqNumber
     if [[ $seqNumber == [[:digit:]]* ]] && (($seqNumber >= 0)) && (($seqNumber < $availableSystemArchitecturesCount)); then
         desiredSystemArchitecture=${availableSystemArchitectures[$seqNumber]}
     else
@@ -178,8 +178,14 @@ done
 
 
 # 2.5 Changing the default password of the cmkadmin user
-echo -e "\n5. Changing the default password for 'cmkadmin' user ..."
-docker exec -t "$containerID" /bin/bash -c "htpasswd -b /omd/sites/$desiredSiteName/etc/htpasswd cmkadmin $desiredPassword"
+echo -e "\n5. Changing the default password for 'cmkadmin' user ...\n"
+
+# docker exec -t $containerID "htpasswd -b /omd/sites/$desiredSiteName/etc/htpasswd cmkadmin $desiredPassword"
+
+echo -e "- ACTION REQUIRED: We'll open an interactive shell to the docker image below,\n please copy and paste the following code into it then hit enter:\n\n"
+echo -e "echo $desiredPassword | cmk-passwd -i cmkadmin;exit\n"
+
+docker exec -it $containerID su cmk
 
 
 # 3. FINISHED
@@ -201,6 +207,7 @@ echo -e "PW:\t$desiredPassword"
 
 # ----
 # TODO: 
+# the old solution of password setting is not working anymore due to Werk #14389 - should come up with a more sophisticated soltion
 # ask if we want to set up multiple sites (= multiple containers on the same network where every container is one site)
 # assembling the docker-compose.yml
 # gather every local checkmk image then add the as new services (one service per site - if there's more than one version for the same site, ask user to delete the older ones, then continue with the last modified for the site)
