@@ -43,6 +43,12 @@ The easiest way is to handle the containers with the Docker Desktop app. If you 
 - To **stop** the running container, simply change directory to the git folder where you've cloned the project, then run `docker compose down` .
 - To **stop && remove** the running container, simply run `docker rm -f <containerID>` (you can look up the containerID with `docker ps`).
 
+## Version update
+
+To update the cmk version, simply run the `./setup.sh` script again, and choose the newer version of CMK from the list during the setup. 
+
+If you want to persist the data between the versions, then simply point at the same data source path as for the previous version during the setup.
+
 ## References
 
 - The custom Debian ARM Checkmk binary is downloaded from [chrisss404/check-mk-arm](https://github.com/chrisss404/check-mk-arm) GitHub releases.
